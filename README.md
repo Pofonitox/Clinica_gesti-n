@@ -30,8 +30,3 @@ Abrir `index.html` en cualquier navegador, o entrar a la página publicada con G
 - Es un prototipo académico: las contraseñas están en el código y no deben usarse en un sistema real.
 - Una implementación real requeriría revisar las normas de privacidad y protección de datos de salud.
 
-## Autores
-
-Lopez Fernandez, Haldair Manuel; Romero Tito, Jaldir Omar; Manrique Torres, Luis Alberto; Meza Tonico, Mario Jesús; Jauregui Almanza, Gimena Zarahit; Farro Arce, Gabriel Jeanpier.
-
-Docente: Mgtr. Blanco Vasquez, Keyla Elizabeth.
