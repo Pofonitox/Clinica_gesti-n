@@ -1,0 +1,637 @@
+<title>Gestión Clínica Integral</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Composición: barra lateral con módulos + área de trabajo. En teléfono la barra pasa arriba.
+   Los códigos clínicos (DNI, historia, CMP) van en monoespaciada, como en una ficha impresa. */
+:root{
+  --bg:#EEF3F2; --surface:#FFFFFF; --surface2:#E4ECEA; --ink:#10282A; --muted:#566B6C; --line:#D0DEDB;
+  --accent:#0A6B6B; --accent-ink:#FFFFFF; --accent-soft:#D3EAE6;
+  --blue:#27517F; --blue-soft:#DCE7F4;
+  --ok:#1E7B4F; --ok-soft:#DAF0E4; --warn:#8F5A00; --warn-soft:#F6E8C6; --bad:#B3322B; --bad-soft:#F5D9D6;
+  --f-disp:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans","Segoe UI",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0B1718; --surface:#122325; --surface2:#1A3033; --ink:#E3EFEE; --muted:#93ABAA; --line:#25403F;
+    --accent:#4FC3B5; --accent-ink:#062524; --accent-soft:#17403F;
+    --blue:#8DB6EA; --blue-soft:#1B2F4A;
+    --ok:#5DCB93; --ok-soft:#14352A; --warn:#E3B04F; --warn-soft:#3A2F14; --bad:#F08A82; --bad-soft:#3E1D1B;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0B1718; --surface:#122325; --surface2:#1A3033; --ink:#E3EFEE; --muted:#93ABAA; --line:#25403F;
+  --accent:#4FC3B5; --accent-ink:#062524; --accent-soft:#17403F;
+  --blue:#8DB6EA; --blue-soft:#1B2F4A;
+  --ok:#5DCB93; --ok-soft:#14352A; --warn:#E3B04F; --warn-soft:#3A2F14; --bad:#F08A82; --bad-soft:#3E1D1B;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 var(--f-body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px}
+h1,h2,h3{font-family:var(--f-disp);margin:0;text-wrap:balance}
+button,input,select{font:inherit}
+.mono{font-family:var(--f-mono);font-size:13px}
+.muted{color:var(--muted)}
+small{color:var(--muted);font-size:12px}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* Estructura */
+.shell{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:230px minmax(0,1fr);gap:24px;align-items:start}
+.side{position:sticky;top:20px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:18px}
+.brand{display:flex;gap:10px;align-items:center}
+.logo{width:36px;height:36px;border-radius:9px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;flex:none}
+.brand b{font-family:var(--f-disp);font-size:17px;line-height:1.1;display:block}
+.brand small{display:block}
+.nav{display:flex;flex-direction:column;gap:4px}
+.nav button{display:flex;gap:10px;align-items:center;width:100%;padding:9px 10px;border:0;background:none;color:var(--ink);font-weight:500;border-radius:8px;cursor:pointer;text-align:left}
+.nav button:hover{background:var(--surface2)}
+.nav button[aria-current="page"]{background:var(--accent-soft);color:var(--accent)}
+.nav svg{flex:none}
+.nav em{margin-left:auto;font-style:normal;font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+.me{border-top:1px solid var(--line);padding-top:14px;display:grid;gap:10px}
+.me .who{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.me .row{display:flex;gap:8px;flex-wrap:wrap}
+.main{min-width:0}
+.head{display:flex;justify-content:space-between;gap:12px;align-items:flex-end;flex-wrap:wrap;margin-bottom:16px}
+h1{font-size:clamp(25px,4vw,34px);line-height:1.1;font-weight:700}
+.head p{margin:4px 0 0;color:var(--muted)}
+.notice{background:var(--warn-soft);color:var(--warn);border-radius:10px;padding:10px 14px;margin-bottom:16px;font-weight:500}
+.info{background:var(--accent-soft);color:var(--ink);border-radius:10px;padding:12px 14px;margin-bottom:16px;display:flex;gap:12px;justify-content:space-between;align-items:center;flex-wrap:wrap}
+.info .row{display:flex;gap:8px;flex-wrap:wrap}
+
+/* Controles */
+.btn{padding:8px 14px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-weight:600;cursor:pointer}
+.btn:hover{background:var(--surface2)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.primary:hover{background:var(--accent);filter:brightness(1.1)}
+.btn.sm{padding:4px 10px;font-size:13px}
+.btn.danger{color:var(--bad)}
+.btn.danger.solid{background:var(--bad);color:#fff;border-color:var(--bad)}
+input,select{color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 10px;width:100%;min-width:0}
+input.mono{font-size:14px}
+.field{display:grid;gap:4px;margin-bottom:12px}
+.field>span{font-weight:600;font-size:13px}
+.req{color:var(--bad)}
+.bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.bar input[type=search]{flex:1;min-width:200px;background:var(--surface)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{padding:6px 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface);cursor:pointer;font-weight:500;font-size:13px;color:var(--ink)}
+.chip[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.count{color:var(--muted);font-size:13px;margin-left:auto}
+
+/* Tablas */
+.scroll{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+table{border-collapse:collapse;width:100%;min-width:640px}
+th{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:0}
+td small{display:block}
+td.act{white-space:nowrap;text-align:right}
+td.empty{text-align:center;color:var(--muted);padding:32px 12px}
+td select{padding:5px 8px;width:auto}
+.badge{display:inline-block;padding:2px 9px;border-radius:999px;font-size:12px;font-weight:600;background:var(--surface2);color:var(--muted);white-space:nowrap}
+.b-pac{background:var(--accent-soft);color:var(--accent)}
+.b-med{background:var(--blue-soft);color:var(--blue)}
+.b-ok{background:var(--ok-soft);color:var(--ok)}
+.b-warn{background:var(--warn-soft);color:var(--warn)}
+.b-bad{background:var(--bad-soft);color:var(--bad)}
+.b-blood{background:var(--bad-soft);color:var(--bad);font-family:var(--f-mono)}
+
+/* Inicio */
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.tile b{display:block;font-family:var(--f-disp);font-size:36px;line-height:1;font-variant-numeric:tabular-nums}
+.tile span{color:var(--muted);font-size:13px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,330px),1fr));gap:16px;margin-bottom:16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;min-width:0}
+.card h2{font-size:18px;margin-bottom:12px}
+.bars{display:grid;gap:8px}
+.brow{display:grid;grid-template-columns:var(--lw,44px) 1fr 24px;gap:10px;align-items:center;font-size:13px}
+.brow .n{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+.track{height:10px;border-radius:5px;background:var(--surface2);overflow:hidden}
+.fill{height:100%;background:var(--accent);border-radius:5px}
+.list{display:grid}
+.item{display:grid;grid-template-columns:78px minmax(0,1fr);gap:12px;padding:10px 0;border-top:1px solid var(--line)}
+.item:first-child{border-top:0;padding-top:0}
+.when b{display:block;font-size:14px}
+.item small{display:block}
+.empty-note{color:var(--muted);padding:8px 0}
+
+/* Ventanas */
+.backdrop{position:fixed;inset:0;background:rgba(5,15,16,.6);display:grid;place-items:center;z-index:50;overflow:auto;
+  padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.modal{background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:14px;width:min(520px,100%);max-height:calc(100dvh - 32px);overflow:auto;padding:20px}
+.modal h2{font-size:21px;margin-bottom:14px}
+.mfoot{display:flex;gap:8px;justify-content:flex-end;margin-top:6px}
+.err{background:var(--bad-soft);color:var(--bad);border-radius:8px;padding:9px 12px;margin:0 0 12px;font-weight:500}
+.rolesf{border:0;padding:0;margin:0 0 12px}
+.rolesf legend{font-weight:600;font-size:13px;padding:0;margin-bottom:6px}
+.roles{display:flex;gap:8px;flex-wrap:wrap}
+.seg{position:relative;flex:1;min-width:110px}
+.seg input{position:absolute;opacity:0;inset:0;width:100%;height:100%;cursor:pointer}
+.seg span{display:block;text-align:center;padding:9px 10px;border:1px solid var(--line);border-radius:8px;font-weight:600;font-size:14px}
+.seg input:checked+span{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.seg input:focus-visible+span{outline:2px solid var(--accent);outline-offset:2px}
+.sub{border:1px solid var(--line);border-radius:10px;padding:12px 12px 0;margin-bottom:12px;background:var(--bg)}
+.sub h3{font-size:14px;margin-bottom:10px}
+.sub input,.sub select{background:var(--surface)}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;z-index:60;font-weight:500;max-width:calc(100% - 32px)}
+
+/* Ingreso */
+.login-wrap{min-height:calc(100dvh - 40px);display:grid;place-items:center}
+.login{width:min(410px,100%);background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:28px}
+.login .brand{margin-bottom:20px}
+.login h1{font-size:26px;margin-bottom:4px}
+.login .demo{margin-top:18px;padding-top:16px;border-top:1px solid var(--line);display:grid;gap:8px}
+.login .demo .row{display:flex;gap:8px;flex-wrap:wrap}
+
+@media (max-width:820px){
+  .shell{grid-template-columns:minmax(0,1fr);gap:16px}
+  .side{position:static;gap:12px}
+  .nav{flex-direction:row;overflow-x:auto;padding-bottom:2px}
+  .nav button{width:auto;white-space:nowrap}
+  .nav em{margin-left:4px}
+  .me{border-top:0;padding-top:0}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<div id="app"></div>
+
+<script>
+(function(){
+"use strict";
+const GRUPOS=["O+","O-","A+","A-","B+","B-","AB+","AB-"];
+const ESPECIALIDADES=["Medicina General","Pediatría","Ginecología","Cardiología","Dermatología","Traumatología","Odontología","Otra"];
+const ESTADOS=["Programada","Atendida","Cancelada"];
+const VISTAS=["inicio","personas","pacientes","medicos","citas"];
+const KEY="gestion-clinica-v1";
+const USERS={admin:{clave:"admin123",rol:"administrador"},consulta:{clave:"consulta123",rol:"consulta"}};
+let db=null, session=null, ui={view:"inicio",q:"",estado:"todas"};
+
+const $=(s,r)=>(r||document).querySelector(s);
+const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const norm=s=>String(s||"").normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase();
+const iso=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+const esAdmin=()=>session&&session.rol==="administrador";
+
+/* ---------- Datos ---------- */
+function load(){try{const r=localStorage.getItem(KEY);if(r){const d=JSON.parse(r);if(d&&Array.isArray(d.personas)&&Array.isArray(d.citas))return d}}catch(e){}return null}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(db))}catch(e){}}
+function vacio(){return {seq:100,demo:false,personas:[],pacientes:[],medicos:[],citas:[]}}
+function seed(){
+  const t=new Date();
+  const dia=n=>iso(new Date(t.getFullYear(),t.getMonth(),t.getDate()+n));
+  const d=vacio(); d.demo=true;
+  [[1,"12345678","Ana","Pérez Quispe","1991-04-12","987654321","Av. Las Flores 245, Ate"],
+   [2,"23456789","Luis","Ríos Mendoza","1978-09-30","976543210","Jr. Huallaga 118, Santa Anita"],
+   [3,"34567890","Rosa","Vega Salas","1984-02-17","965432109","Calle Los Pinos 77, La Molina"],
+   [4,"45678901","Carlos","Huamán Díaz","1989-11-05","954321098","Av. Central 903, San Juan de Lurigancho"],
+   [5,"56789012","Lucía","Torres Rojas","2001-07-22","943210987","Psje. Arequipa 31, Chaclacayo"],
+   [6,"67890123","Miguel","Salazar Cruz","1975-01-09","932109876","Av. Javier Prado 1560, San Borja"],
+   [7,"78901234","Elena","Castro Paredes","1996-12-28","921098765","Jr. Cusco 402, El Agustino"]
+  ].forEach(r=>d.personas.push({id:r[0],dni:r[1],nombres:r[2],apellidos:r[3],nac:r[4],tel:r[5],dir:r[6]}));
+  [[11,1,"HC-0001","O+","Penicilina"],[12,2,"HC-0002","A+",""],[13,4,"HC-0003","B+",""],[14,5,"HC-0004","O-","Polen"],[15,7,"HC-0005","AB+",""]]
+    .forEach(r=>d.pacientes.push({id:r[0],personaId:r[1],codigo:r[2],grupo:r[3],alergias:r[4]}));
+  [[21,3,"45678","Cardiología"],[22,4,"52310","Pediatría"],[23,6,"61842","Medicina General"]]
+    .forEach(r=>d.medicos.push({id:r[0],personaId:r[1],cmp:r[2],esp:r[3]}));
+  [[31,11,21,0,"09:00","Control de presión arterial","Programada"],
+   [32,12,23,0,"10:30","Chequeo general","Programada"],
+   [33,13,21,1,"08:30","Dolor torácico leve","Programada"],
+   [34,14,22,2,"11:00","Vacunación de refuerzo","Programada"],
+   [35,15,23,3,"15:00","Resultados de laboratorio","Programada"],
+   [36,11,23,-3,"09:30","Control mensual","Atendida"],
+   [37,12,21,-1,"16:00","Consulta cardiológica","Cancelada"]]
+    .forEach(r=>d.citas.push({id:r[0],pacienteId:r[1],medicoId:r[2],fecha:dia(r[3]),hora:r[4],motivo:r[5],estado:r[6]}));
+  d.seq=100; return d;
+}
+const persona=id=>db.personas.find(p=>p.id===id);
+const paciente=id=>db.pacientes.find(p=>p.id===id);
+const medico=id=>db.medicos.find(m=>m.id===id);
+const nombre=p=>p?p.apellidos+", "+p.nombres:"(eliminado)";
+const nombrePac=pa=>pa?nombre(persona(pa.personaId)):"(eliminado)";
+const nombreMed=m=>m?nombre(persona(m.personaId)):"(eliminado)";
+function edad(s){if(!s)return"";const [y,m,d]=s.split("-").map(Number);const t=new Date();let a=t.getFullYear()-y;if(t.getMonth()+1<m||(t.getMonth()+1===m&&t.getDate()<d))a--;return a>=0?a+" años":""}
+function fmtFecha(f){
+  const [y,m,d]=f.split("-").map(Number);const x=new Date(y,m-1,d);const hoy=new Date();
+  const h0=new Date(hoy.getFullYear(),hoy.getMonth(),hoy.getDate());
+  const dif=Math.round((x-h0)/86400000);
+  if(dif===0)return"Hoy"; if(dif===1)return"Mañana"; if(dif===-1)return"Ayer";
+  return x.toLocaleDateString("es-PE",{weekday:"short",day:"numeric",month:"short"}).replace(".","");
+}
+const cmpCita=(a,b)=>(a.fecha+a.hora).localeCompare(b.fecha+b.hora);
+function sugerirHC(){
+  let max=0;db.pacientes.forEach(p=>{const m=/^HC-(\d+)$/i.exec(p.codigo);if(m)max=Math.max(max,+m[1])});
+  return "HC-"+String(max+1).padStart(4,"0");
+}
+
+/* ---------- Validaciones (mismas reglas que el prototipo de escritorio) ---------- */
+function valPersona(d,selfId){
+  const dni=(d.dni||"").trim(),nom=(d.nombres||"").trim(),ape=(d.apellidos||"").trim(),tel=(d.tel||"").trim();
+  if(!dni)return "El campo DNI es obligatorio.";
+  if(!nom)return "El campo Nombres es obligatorio.";
+  if(!ape)return "El campo Apellidos es obligatorio.";
+  if(!/^\d{8}$/.test(dni))return "El DNI debe tener exactamente 8 dígitos.";
+  if(db.personas.some(p=>p.dni===dni&&p.id!==selfId))return "Ya existe una persona con DNI "+dni+".";
+  if(tel&&!/^\d{6,9}$/.test(tel))return "El teléfono debe tener entre 6 y 9 dígitos.";
+  if(d.nac){if(!/^\d{4}-\d{2}-\d{2}$/.test(d.nac))return "La fecha debe tener el formato AAAA-MM-DD.";if(d.nac>iso(new Date()))return "La fecha de nacimiento no puede ser futura."}
+  return "";
+}
+function valPaciente(d,selfId){
+  const c=(d.codigo||"").trim();
+  if(!c)return "El campo Código de historia es obligatorio.";
+  if(d.grupo&&!GRUPOS.includes(d.grupo))return "Grupo sanguíneo no válido.";
+  if(db.pacientes.some(p=>p.codigo.toLowerCase()===c.toLowerCase()&&p.id!==selfId))return "Ese código de historia ya está en uso.";
+  return "";
+}
+function valMedico(d,selfId){
+  const c=(d.cmp||"").trim();
+  if(!c)return "El campo CMP es obligatorio.";
+  if(!d.esp)return "El campo Especialidad es obligatorio.";
+  if(!/^\d{4,6}$/.test(c))return "El CMP debe tener entre 4 y 6 dígitos.";
+  if(db.medicos.some(m=>m.cmp===c&&m.id!==selfId))return "Ese CMP ya está registrado.";
+  return "";
+}
+function conflictoCita(c,selfId){
+  const otras=db.citas.filter(x=>x.id!==selfId&&x.estado!=="Cancelada"&&x.fecha===c.fecha&&x.hora===c.hora);
+  if(otras.some(x=>x.medicoId===c.medicoId))return "Ese médico ya tiene una cita el "+fmtFecha(c.fecha)+" a las "+c.hora+". Elija otra hora.";
+  if(otras.some(x=>x.pacienteId===c.pacienteId))return "Ese paciente ya tiene otra cita a la misma fecha y hora.";
+  return "";
+}
+
+/* ---------- Utilidades de interfaz ---------- */
+function toast(msg){
+  const t=document.createElement("div");t.className="toast";t.setAttribute("role","status");t.textContent=msg;
+  document.body.appendChild(t);setTimeout(()=>t.remove(),2600);
+}
+function closeModal(){const m=$("#modal");if(m)m.remove()}
+function modal(o){
+  closeModal();
+  const w=document.createElement("div");w.className="backdrop";w.id="modal";
+  w.innerHTML='<div class="modal" role="dialog" aria-modal="true" aria-labelledby="mt"><form id="mform" novalidate><h2 id="mt">'+esc(o.titulo)+'</h2>'
+    +o.cuerpo+'<p class="err" id="merr" role="alert" hidden></p><div class="mfoot"><button type="button" class="btn" data-act="cerrar">Cancelar</button>'
+    +'<button class="btn primary'+(o.peligro?" danger solid":"")+'" type="submit">'+esc(o.boton||"Guardar")+'</button></div></form></div>';
+  document.body.appendChild(w);
+  const f=$("#mform");
+  f.addEventListener("submit",ev=>{
+    ev.preventDefault();
+    const data={};new FormData(f).forEach((v,k)=>{data[k]=v});
+    const e=o.onSubmit(data);
+    if(e){const m=$("#merr");m.textContent=e;m.hidden=false}else{closeModal();render()}
+  });
+  const first=f.querySelector("input:not([type=radio]),select");if(first)first.focus();
+  return f;
+}
+function confirmar(titulo,texto,boton,fn){
+  modal({titulo,cuerpo:'<p>'+esc(texto)+'</p>',boton,peligro:true,onSubmit:()=>{fn();return ""}});
+}
+function campo(n,label,o){
+  o=o||{};const v=o.value==null?"":o.value;
+  const req=o.req?' <span class="req" aria-hidden="true">*</span>':"";
+  let ctl;
+  if(o.opts){
+    ctl='<select id="f-'+n+'" name="'+n+'">'+(o.sinVacio?"":'<option value="">Seleccionar…</option>')
+      +o.opts.map(x=>{const val=typeof x==="object"?x.v:x,lab=typeof x==="object"?x.l:x;
+        return '<option value="'+esc(val)+'"'+(String(val)===String(v)?" selected":"")+'>'+esc(lab)+'</option>'}).join("")+'</select>';
+  }else{
+    ctl='<input id="f-'+n+'" name="'+n+'" type="'+(o.type||"text")+'" value="'+esc(v)+'"'+(o.ph?' placeholder="'+esc(o.ph)+'"':"")
+      +(o.max?' maxlength="'+o.max+'"':"")+(o.inputmode?' inputmode="'+o.inputmode+'"':"")+(o.mono?' class="mono"':"")+' autocomplete="off">';
+  }
+  return '<label class="field" for="f-'+n+'"><span>'+esc(label)+req+'</span>'+ctl+(o.hint?'<small>'+esc(o.hint)+'</small>':"")+'</label>';
+}
+const camposPaciente=(p)=>
+  campo("codigo","Código de historia",{req:1,mono:1,ph:"HC-0001",value:p?p.codigo:sugerirHC(),hint:"Único por paciente."})
+ +campo("grupo","Grupo sanguíneo",{opts:GRUPOS,value:p?p.grupo:""})
+ +campo("alergias","Alergias",{ph:"Ninguna conocida",value:p?p.alergias:""});
+const camposMedico=(m)=>
+  campo("cmp","CMP",{req:1,mono:1,ph:"45678",inputmode:"numeric",max:6,value:m?m.cmp:"",hint:"Colegio Médico del Perú, de 4 a 6 dígitos."})
+ +campo("esp","Especialidad",{req:1,opts:ESPECIALIDADES,value:m?m.esp:""});
+
+/* ---------- Ventanas de formulario ---------- */
+function modalPersona(p){
+  const nuevo=!p;p=p||{};
+  const roles=nuevo?'<fieldset class="rolesf"><legend>Registrar como</legend><div class="roles">'
+    +["Solo persona","Paciente","Médico"].map((r,i)=>'<label class="seg"><input type="radio" name="rol" value="'+r+'"'+(i===0?" checked":"")+'><span>'+r+'</span></label>').join("")
+    +'</div></fieldset><div id="blk-pac" class="sub" hidden><h3>Datos de paciente</h3>'+camposPaciente()+'</div>'
+    +'<div id="blk-med" class="sub" hidden><h3>Datos de médico</h3>'+camposMedico()+'</div>':"";
+  const f=modal({titulo:nuevo?"Nueva persona":"Editar persona",cuerpo:
+    campo("dni","DNI",{req:1,mono:1,ph:"8 dígitos",inputmode:"numeric",max:8,value:p.dni})
+   +campo("nombres","Nombres",{req:1,value:p.nombres})
+   +campo("apellidos","Apellidos",{req:1,value:p.apellidos})
+   +campo("nac","Fecha de nacimiento",{type:"date",value:p.nac})
+   +campo("tel","Teléfono",{inputmode:"tel",max:9,value:p.tel,ph:"987654321"})
+   +campo("dir","Dirección",{value:p.dir})+roles,
+   onSubmit:d=>{
+    let e=valPersona(d,p.id);if(e)return e;
+    if(nuevo){
+      if(d.rol==="Paciente"){e=valPaciente(d);if(e)return e}
+      if(d.rol==="Médico"){e=valMedico(d);if(e)return e}
+      const id=++db.seq;
+      db.personas.push({id,dni:d.dni.trim(),nombres:d.nombres.trim(),apellidos:d.apellidos.trim(),nac:d.nac||"",tel:(d.tel||"").trim(),dir:(d.dir||"").trim()});
+      if(d.rol==="Paciente")db.pacientes.push({id:++db.seq,personaId:id,codigo:d.codigo.trim(),grupo:d.grupo||"",alergias:(d.alergias||"").trim()});
+      if(d.rol==="Médico")db.medicos.push({id:++db.seq,personaId:id,cmp:d.cmp.trim(),esp:d.esp});
+      toast(d.rol==="Solo persona"?"Persona registrada":"Persona registrada como "+d.rol.toLowerCase());
+    }else{
+      Object.assign(p,{dni:d.dni.trim(),nombres:d.nombres.trim(),apellidos:d.apellidos.trim(),nac:d.nac||"",tel:(d.tel||"").trim(),dir:(d.dir||"").trim()});
+      toast("Cambios guardados");
+    }
+    save();return "";
+  }});
+  if(nuevo)f.querySelectorAll("input[name=rol]").forEach(r=>r.addEventListener("change",()=>{
+    const v=f.querySelector("input[name=rol]:checked").value;
+    $("#blk-pac").hidden=v!=="Paciente";$("#blk-med").hidden=v!=="Médico";
+  }));
+}
+function opcionesSinRol(lista){
+  return db.personas.filter(p=>!lista.some(x=>x.personaId===p.id)).sort((a,b)=>nombre(a).localeCompare(nombre(b)))
+    .map(p=>({v:p.id,l:p.dni+"  "+nombre(p)}));
+}
+function modalPaciente(pa){
+  const nuevo=!pa;
+  let sel="";
+  if(nuevo){
+    const opc=opcionesSinRol(db.pacientes);
+    if(!opc.length){toast("Todas las personas ya son pacientes. Registre una persona nueva.");return}
+    sel=campo("persona","Persona",{req:1,opts:opc});
+  }else sel='<p><b>'+esc(nombrePac(pa))+'</b><br><small>DNI '+esc(persona(pa.personaId).dni)+'</small></p>';
+  modal({titulo:nuevo?"Nuevo paciente":"Editar paciente",cuerpo:sel+camposPaciente(pa),onSubmit:d=>{
+    if(nuevo&&!d.persona)return "Seleccione una persona.";
+    const e=valPaciente(d,pa&&pa.id);if(e)return e;
+    if(nuevo){db.pacientes.push({id:++db.seq,personaId:+d.persona,codigo:d.codigo.trim(),grupo:d.grupo||"",alergias:(d.alergias||"").trim()});toast("Paciente registrado")}
+    else{Object.assign(pa,{codigo:d.codigo.trim(),grupo:d.grupo||"",alergias:(d.alergias||"").trim()});toast("Cambios guardados")}
+    save();return "";
+  }});
+}
+function modalMedico(m){
+  const nuevo=!m;
+  let sel="";
+  if(nuevo){
+    const opc=opcionesSinRol(db.medicos);
+    if(!opc.length){toast("Todas las personas ya son médicos. Registre una persona nueva.");return}
+    sel=campo("persona","Persona",{req:1,opts:opc});
+  }else sel='<p><b>'+esc(nombreMed(m))+'</b><br><small>DNI '+esc(persona(m.personaId).dni)+'</small></p>';
+  modal({titulo:nuevo?"Nuevo médico":"Editar médico",cuerpo:sel+camposMedico(m),onSubmit:d=>{
+    if(nuevo&&!d.persona)return "Seleccione una persona.";
+    const e=valMedico(d,m&&m.id);if(e)return e;
+    if(nuevo){db.medicos.push({id:++db.seq,personaId:+d.persona,cmp:d.cmp.trim(),esp:d.esp});toast("Médico registrado")}
+    else{Object.assign(m,{cmp:d.cmp.trim(),esp:d.esp});toast("Cambios guardados")}
+    save();return "";
+  }});
+}
+function modalCita(){
+  if(!db.pacientes.length||!db.medicos.length){toast("Para agendar una cita necesita al menos un paciente y un médico.");return}
+  modal({titulo:"Nueva cita",cuerpo:
+    campo("pac","Paciente",{req:1,opts:db.pacientes.map(p=>({v:p.id,l:nombrePac(p)+"  ·  "+p.codigo})).sort((a,b)=>a.l.localeCompare(b.l))})
+   +campo("med","Médico",{req:1,opts:db.medicos.map(m=>({v:m.id,l:nombreMed(m)+"  ·  "+m.esp})).sort((a,b)=>a.l.localeCompare(b.l))})
+   +campo("fecha","Fecha",{req:1,type:"date",value:iso(new Date())})
+   +campo("hora","Hora",{req:1,type:"time",value:"09:00"})
+   +campo("motivo","Motivo de la consulta",{ph:"Control, dolor, vacunación…"}),
+   onSubmit:d=>{
+    if(!d.pac||!d.med)return "Seleccione el paciente y el médico.";
+    if(!d.fecha||!d.hora)return "Indique la fecha y la hora de la cita.";
+    const c={pacienteId:+d.pac,medicoId:+d.med,fecha:d.fecha,hora:d.hora,motivo:(d.motivo||"").trim(),estado:"Programada"};
+    const e=conflictoCita(c);if(e)return e;
+    c.id=++db.seq;db.citas.push(c);save();toast("Cita agendada");return "";
+  }});
+}
+
+/* ---------- Vistas ---------- */
+const ICON={
+  inicio:'<path d="M3 11l9-8 9 8M5 10v10h14V10"/>',
+  personas:'<circle cx="9" cy="8" r="3.2"/><path d="M3 20c.5-3.5 3-5.5 6-5.5s5.5 2 6 5.5M16 5.2a3.2 3.2 0 010 5.6M21 20c-.3-2.4-1.5-4.2-3.4-5"/>',
+  pacientes:'<path d="M12 21s-8-4.8-8-11a4.5 4.5 0 018-2.8A4.5 4.5 0 0120 10c0 6.2-8 11-8 11z"/>',
+  medicos:'<path d="M6 3v6a4 4 0 008 0V3M10 13v2a5 5 0 0010 0v-1"/><circle cx="20" cy="12" r="2"/>',
+  citas:'<rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/>'
+};
+const svg=k=>'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+ICON[k]+'</svg>';
+const NAV=[["inicio","Inicio"],["personas","Personas"],["pacientes","Pacientes"],["medicos","Médicos"],["citas","Citas"]];
+const total=k=>k==="personas"?db.personas.length:k==="pacientes"?db.pacientes.length:k==="medicos"?db.medicos.length:k==="citas"?db.citas.filter(c=>c.estado==="Programada").length:"";
+
+function sideHtml(){
+  return '<aside class="side"><div class="brand"><div class="logo"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M12 4v16M4 12h16"/></svg></div><div><b>Gestión Clínica</b><small>Prototipo integral</small></div></div>'
+   +'<nav class="nav" aria-label="Módulos">'+NAV.map(n=>'<button data-act="nav" data-v="'+n[0]+'"'+(ui.view===n[0]?' aria-current="page"':"")+'>'+svg(n[0])+n[1]+(n[0]!=="inicio"?'<em>'+total(n[0])+'</em>':"")+'</button>').join("")+'</nav>'
+   +'<div class="me"><div class="who"><b>'+esc(session.usuario)+'</b><span class="badge '+(esAdmin()?"b-pac":"b-warn")+'">'+(esAdmin()?"Administrador":"Consulta")+'</span></div>'
+   +(esAdmin()?'<div class="row"><small style="width:100%">Copia de seguridad</small><button class="btn sm" data-act="exportar">Descargar copia</button><button class="btn sm" data-act="importar">Cargar copia</button><input id="f-import" type="file" accept=".json,application/json" hidden></div>':"")
+   +'<div class="row"><button class="btn sm" data-act="tema">Cambiar tema</button><button class="btn sm" data-act="salir">Salir</button></div></div></aside>';
+}
+function head(titulo,desc,btn){
+  return '<div class="head"><div><h1>'+titulo+'</h1><p>'+desc+'</p></div>'+(btn&&esAdmin()?btn:"")+'</div>'
+    +(esAdmin()?"":'<div class="notice">Modo consulta: puede ver y buscar registros, pero no crear ni modificar.</div>');
+}
+function vInicio(){
+  const hoy=iso(new Date());
+  const prox=db.citas.filter(c=>c.estado==="Programada"&&c.fecha>=hoy).sort(cmpCita).slice(0,5);
+  const citasHoy=db.citas.filter(c=>c.fecha===hoy&&c.estado==="Programada").length;
+  const porG=GRUPOS.map(g=>[g,db.pacientes.filter(p=>p.grupo===g).length]);
+  const maxG=Math.max(1,...porG.map(x=>x[1]));
+  const esp={};db.medicos.forEach(m=>{esp[m.esp]=(esp[m.esp]||0)+1});
+  const espA=Object.entries(esp).sort((a,b)=>b[1]-a[1]);const maxE=Math.max(1,...espA.map(x=>x[1]));
+  const demo=db.demo?'<div class="info"><span>Está viendo <b>datos de ejemplo</b> con personas ficticias.'+(esAdmin()?" Puede restablecerlos o empezar con el sistema vacío.":"")+'</span>'
+    +(esAdmin()?'<span class="row"><button class="btn sm" data-act="reset-demo">Restablecer ejemplos</button><button class="btn sm danger" data-act="vaciar">Vaciar todo</button></span>':"")+'</div>':"";
+  return head("Panel de la clínica","Resumen de registros y agenda del día.")+demo
+   +'<div class="tiles"><div class="tile"><b>'+db.personas.length+'</b><span>Personas registradas</span></div><div class="tile"><b>'+db.pacientes.length+'</b><span>Pacientes</span></div><div class="tile"><b>'+db.medicos.length+'</b><span>Médicos</span></div><div class="tile"><b>'+citasHoy+'</b><span>Citas programadas hoy</span></div></div>'
+   +'<div class="grid2"><section class="card"><h2>Próximas citas</h2>'
+   +(prox.length?'<div class="list">'+prox.map(c=>'<div class="item"><div class="when"><b>'+esc(fmtFecha(c.fecha))+'</b><span class="mono">'+esc(c.hora)+'</span></div><div><b>'+esc(nombrePac(paciente(c.pacienteId)))+'</b><small>con '+esc(nombreMed(medico(c.medicoId)))+' · '+esc((medico(c.medicoId)||{}).esp||"")+'</small>'+(c.motivo?'<small>'+esc(c.motivo)+'</small>':"")+'</div></div>').join("")+'</div>'
+     :'<p class="empty-note">No hay citas programadas. Agéndelas desde el módulo Citas.</p>')+'</section>'
+   +'<section class="card"><h2>Pacientes por grupo sanguíneo</h2><div class="bars">'
+   +porG.map(x=>'<div class="brow"><span class="mono">'+x[0]+'</span><div class="track"><div class="fill" style="width:'+(x[1]/maxG*100)+'%"></div></div><span class="n">'+x[1]+'</span></div>').join("")+'</div></section></div>'
+   +'<div class="grid2"><section class="card"><h2>Médicos por especialidad</h2>'
+   +(espA.length?'<div class="bars" style="--lw:130px">'+espA.map(x=>'<div class="brow"><span>'+esc(x[0])+'</span><div class="track"><div class="fill" style="width:'+(x[1]/maxE*100)+'%"></div></div><span class="n">'+x[1]+'</span></div>').join("")+'</div>':'<p class="empty-note">Aún no hay médicos registrados.</p>')+'</section>'
+   +'<section class="card"><h2>Sobre este prototipo</h2><p style="margin:0 0 8px">Centraliza personas, pacientes y médicos en una sola estructura, valida los campos obligatorios y evita registros duplicados por DNI, código de historia y CMP.</p><p style="margin:0" class="muted">Los datos se guardan solo en este navegador. Una implementación real requeriría revisar las normas de privacidad y protección de datos de salud.</p></section></div>';
+}
+function rolesDe(p){
+  const r=[];if(db.pacientes.some(x=>x.personaId===p.id))r.push('<span class="badge b-pac">Paciente</span>');
+  if(db.medicos.some(x=>x.personaId===p.id))r.push('<span class="badge b-med">Médico</span>');
+  return r.join(" ")||'<span class="muted">Solo persona</span>';
+}
+const btnA=(act,id,txt,cls)=>'<button class="btn sm '+(cls||"")+'" data-act="'+act+'" data-id="'+id+'">'+txt+'</button>';
+const actCell=(e,d)=>esAdmin()?'<td class="act">'+btnA(e[0],e[1],"Editar")+(d?" "+btnA(d[0],d[1],"Eliminar","danger"):"")+'</td>':"";
+
+/* Cada módulo define columnas, filas y cómo buscar. */
+const MOD={
+  personas:{cols:["DNI","Persona","Roles","Teléfono","Edad"],
+    todo:()=>db.personas.slice().sort((a,b)=>nombre(a).localeCompare(nombre(b))),
+    texto:p=>[p.dni,p.nombres,p.apellidos,p.tel],
+    fila:p=>'<td class="mono">'+esc(p.dni)+'</td><td><b>'+esc(nombre(p))+'</b>'+(p.dir?'<small>'+esc(p.dir)+'</small>':"")+'</td><td>'+rolesDe(p)+'</td><td class="mono">'+esc(p.tel||"")+'</td><td>'+esc(edad(p.nac))+'</td>'
+      +actCell(["edit-persona",p.id],["del-persona",p.id]),
+    vacio:"Todavía no hay personas. Use «Nueva persona» para registrar la primera."},
+  pacientes:{cols:["Historia","Paciente","DNI","Grupo","Alergias","Citas"],
+    todo:()=>db.pacientes.slice().sort((a,b)=>nombrePac(a).localeCompare(nombrePac(b))),
+    texto:p=>{const x=persona(p.personaId);return [p.codigo,x.dni,x.nombres,x.apellidos,p.alergias]},
+    fila:p=>'<td class="mono">'+esc(p.codigo)+'</td><td><b>'+esc(nombrePac(p))+'</b></td><td class="mono">'+esc(persona(p.personaId).dni)+'</td><td>'+(p.grupo?'<span class="badge b-blood">'+esc(p.grupo)+'</span>':"")+'</td><td>'+esc(p.alergias||"")+'</td><td>'+db.citas.filter(c=>c.pacienteId===p.id&&c.estado==="Programada").length+'</td>'
+      +actCell(["edit-pac",p.id],["del-pac",p.id]),
+    vacio:"No hay pacientes. Registre uno con «Nuevo paciente» o al crear una persona."},
+  medicos:{cols:["CMP","Médico","Especialidad","DNI","Citas"],
+    todo:()=>db.medicos.slice().sort((a,b)=>nombreMed(a).localeCompare(nombreMed(b))),
+    texto:m=>{const x=persona(m.personaId);return [m.cmp,x.dni,x.nombres,x.apellidos,m.esp]},
+    fila:m=>'<td class="mono">'+esc(m.cmp)+'</td><td><b>'+esc(nombreMed(m))+'</b></td><td>'+esc(m.esp)+'</td><td class="mono">'+esc(persona(m.personaId).dni)+'</td><td>'+db.citas.filter(c=>c.medicoId===m.id&&c.estado==="Programada").length+'</td>'
+      +actCell(["edit-med",m.id],["del-med",m.id]),
+    vacio:"No hay médicos. Registre uno con «Nuevo médico» o al crear una persona."},
+  citas:{cols:["Fecha y hora","Paciente","Médico","Motivo","Estado"],
+    todo:()=>db.citas.filter(c=>ui.estado==="todas"||c.estado===ui.estado).sort(cmpCita),
+    texto:c=>[nombrePac(paciente(c.pacienteId)),nombreMed(medico(c.medicoId)),c.motivo],
+    fila:c=>{const pa=paciente(c.pacienteId),m=medico(c.medicoId);
+      const est=esAdmin()?'<select data-estado="'+c.id+'" aria-label="Estado de la cita">'+ESTADOS.map(s=>'<option'+(s===c.estado?" selected":"")+'>'+s+'</option>').join("")+'</select>'
+        :'<span class="badge '+(c.estado==="Atendida"?"b-ok":c.estado==="Cancelada"?"b-bad":"b-pac")+'">'+c.estado+'</span>';
+      return '<td><b>'+esc(fmtFecha(c.fecha))+'</b><small class="mono">'+esc(c.fecha)+' · '+esc(c.hora)+'</small></td><td>'+esc(nombrePac(pa))+'<small class="mono">'+esc(pa?pa.codigo:"")+'</small></td><td>'+esc(nombreMed(m))+'<small>'+esc(m?m.esp:"")+'</small></td><td>'+esc(c.motivo||"")+'</td><td>'+est+'</td>'
+        +(esAdmin()?'<td class="act">'+btnA("del-cita",c.id,"Eliminar","danger")+'</td>':"")},
+    vacio:"No hay citas con este filtro. Agende una con «Nueva cita»."}
+};
+function filas(){
+  const m=MOD[ui.view],q=norm(ui.q.trim());
+  const todas=m.todo();
+  const f=q?todas.filter(x=>m.texto(x).some(t=>norm(t).includes(q))):todas;
+  const ncol=m.cols.length+(esAdmin()?1:0);
+  return {n:f.length,total:todas.length,
+    html:f.length?f.map(x=>'<tr>'+m.fila(x)+'</tr>').join(""):'<tr><td class="empty" colspan="'+ncol+'">'+(q?"Ningún registro coincide con «"+esc(ui.q.trim())+"».":m.vacio)+'</td></tr>'};
+}
+const CONF={
+  personas:["Personas","Datos personales de todos los registrados en la clínica.",'<button class="btn primary" data-act="nueva-persona">Nueva persona</button>'],
+  pacientes:["Pacientes","Historias y datos clínicos básicos.",'<button class="btn primary" data-act="nuevo-pac">Nuevo paciente</button>'],
+  medicos:["Médicos","Profesionales con su colegiatura y especialidad.",'<button class="btn primary" data-act="nuevo-med">Nuevo médico</button>'],
+  citas:["Citas","Agenda de consultas. No se permiten dos citas del mismo médico a la misma hora.",'<button class="btn primary" data-act="nueva-cita">Nueva cita</button>']
+};
+function vModulo(){
+  const m=MOD[ui.view],c=CONF[ui.view],r=filas();
+  const chips=ui.view==="citas"?'<div class="chips" role="group" aria-label="Filtrar por estado">'+["todas"].concat(ESTADOS).map(s=>'<button class="chip" data-act="filtro" data-v="'+s+'" aria-pressed="'+(ui.estado===s)+'">'+(s==="todas"?"Todas":s+"s")+'</button>').join("")+'</div>':"";
+  return head(c[0],c[1],c[2])
+   +'<div class="bar"><input id="q" type="search" placeholder="Buscar…" aria-label="Buscar" value="'+esc(ui.q)+'">'+chips+'<span class="count" id="count">'+r.n+(r.n!==r.total?" de "+r.total:"")+" registros"+'</span></div>'
+   +'<div class="scroll"><table><thead><tr>'+m.cols.map(x=>'<th>'+x+'</th>').join("")+(esAdmin()?'<th></th>':"")+'</tr></thead><tbody id="rows">'+r.html+'</tbody></table></div>';
+}
+function loginHtml(){
+  return '<div class="login-wrap"><form class="login" id="login" novalidate><div class="brand"><div class="logo"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M12 4v16M4 12h16"/></svg></div><div><b>Gestión Clínica</b><small>Prototipo integral</small></div></div>'
+   +'<h1>Ingresar</h1><p class="muted" style="margin:0 0 16px">Acceda con su usuario del consultorio.</p>'
+   +campo("usuario","Usuario",{value:""})+campo("clave","Contraseña",{type:"password"})
+   +'<p class="err" id="lerr" role="alert" hidden></p><button class="btn primary" style="width:100%" type="submit">Ingresar</button>'
+   +'<div class="demo"><small>Cuentas de prueba</small><div class="row"><button type="button" class="btn sm" data-act="demo" data-u="admin">Administrador</button><button type="button" class="btn sm" data-act="demo" data-u="consulta">Consulta</button></div></div></form></div>';
+}
+function render(){
+  const root=$("#app");
+  if(!session){root.innerHTML=loginHtml();return}
+  root.innerHTML='<div class="shell">'+sideHtml()+'<main class="main" id="main">'+(ui.view==="inicio"?vInicio():vModulo())+'</main></div>';
+}
+function irA(v){ui.view=v;ui.q="";ui.estado="todas";try{if(location.hash!=="#"+v)location.hash=v}catch(e){}render();window.scrollTo(0,0)}
+
+/* ---------- Copia de seguridad (exportar e importar) ---------- */
+function exportar(){
+  try{
+    const blob=new Blob([JSON.stringify(db,null,2)],{type:"application/json"});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a");
+    a.href=url;a.download="gestion-clinica-"+iso(new Date())+".json";
+    document.body.appendChild(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+    toast("Copia descargada");
+  }catch(e){toast("No se pudo descargar la copia en este entorno.")}
+}
+function validarCopia(d){
+  if(!d||typeof d!=="object")return "El archivo no tiene el formato esperado.";
+  for(const k of ["personas","pacientes","medicos","citas"])if(!Array.isArray(d[k]))return "El archivo no es una copia de este sistema.";
+  const todos=[].concat(d.personas,d.pacientes,d.medicos,d.citas);
+  if(todos.some(x=>!x||!Number.isInteger(x.id)))return "Hay registros sin identificador válido.";
+  if(d.personas.some(p=>typeof p.dni!=="string"||typeof p.nombres!=="string"||typeof p.apellidos!=="string"))return "Hay personas con datos incompletos.";
+  const ids=new Set(d.personas.map(p=>p.id));
+  if(d.pacientes.some(x=>!ids.has(x.personaId)||typeof x.codigo!=="string"||(x.grupo&&!GRUPOS.includes(x.grupo))))return "Hay pacientes con datos no válidos.";
+  if(d.medicos.some(x=>!ids.has(x.personaId)||typeof x.cmp!=="string"||typeof x.esp!=="string"))return "Hay médicos con datos no válidos.";
+  const pids=new Set(d.pacientes.map(x=>x.id)),mids=new Set(d.medicos.map(x=>x.id));
+  if(d.citas.some(c=>!pids.has(c.pacienteId)||!mids.has(c.medicoId)||!ESTADOS.includes(c.estado)||!/^\d{4}-\d{2}-\d{2}$/.test(c.fecha)||!/^\d{2}:\d{2}$/.test(c.hora)))return "Hay citas con datos no válidos.";
+  return "";
+}
+function importarArchivo(input){
+  const f=input.files&&input.files[0];input.value="";
+  if(!f||!esAdmin())return;
+  const r=new FileReader();
+  r.onload=()=>{
+    let d=null,e="";
+    try{d=JSON.parse(r.result);e=validarCopia(d)}catch(x){e="El archivo no es una copia válida (no se pudo leer)."}
+    if(e){modal({titulo:"No se pudo cargar la copia",cuerpo:"<p>"+esc(e)+"</p>",boton:"Entendido",onSubmit:()=>""});return}
+    confirmar("Cargar copia","Se reemplazarán todos los datos actuales por los del archivo ("+d.personas.length+" personas, "+d.pacientes.length+" pacientes, "+d.medicos.length+" médicos, "+d.citas.length+" citas).","Cargar",()=>{
+      const max=[].concat(d.personas,d.pacientes,d.medicos,d.citas).reduce((m,x)=>Math.max(m,x.id),0);
+      db={seq:Math.max(max,Number.isInteger(d.seq)?d.seq:0),demo:false,personas:d.personas,pacientes:d.pacientes,medicos:d.medicos,citas:d.citas};
+      save();toast("Copia cargada");
+    });
+  };
+  r.onerror=()=>toast("No se pudo leer el archivo.");
+  r.readAsText(f);
+}
+
+/* ---------- Eventos ---------- */
+document.addEventListener("click",ev=>{
+  if(ev.target.id==="modal"){closeModal();return}
+  const b=ev.target.closest("[data-act]");if(!b)return;
+  const a=b.dataset.act,id=+b.dataset.id;
+  if(a==="cerrar"){closeModal();return}
+  if(a==="nav"){irA(b.dataset.v);return}
+  if(a==="tema"){
+    const el=document.documentElement;
+    const oscuro=el.dataset.theme==="dark"||(!el.dataset.theme&&matchMedia("(prefers-color-scheme: dark)").matches);
+    el.dataset.theme=oscuro?"light":"dark";try{localStorage.setItem("gc-tema",el.dataset.theme)}catch(e){}return;
+  }
+  if(a==="salir"){session=null;render();return}
+  if(a==="demo"){$("#f-usuario").value=b.dataset.u;$("#f-clave").value=USERS[b.dataset.u].clave;$("#f-clave").focus();return}
+  if(a==="filtro"){ui.estado=b.dataset.v;render();return}
+  if(!esAdmin())return;
+  if(a==="exportar")exportar();
+  else if(a==="importar"){const i=$("#f-import");if(i)i.click()}
+  else if(a==="nueva-persona")modalPersona();
+  else if(a==="edit-persona")modalPersona(persona(id));
+  else if(a==="del-persona"){const p=persona(id);confirmar("Eliminar persona","Se eliminará a "+nombre(p)+" junto con su registro de paciente o médico y sus citas. Esta acción no se puede deshacer.","Eliminar",()=>{
+    const pas=db.pacientes.filter(x=>x.personaId===id).map(x=>x.id),ms=db.medicos.filter(x=>x.personaId===id).map(x=>x.id);
+    db.citas=db.citas.filter(c=>!pas.includes(c.pacienteId)&&!ms.includes(c.medicoId));
+    db.pacientes=db.pacientes.filter(x=>x.personaId!==id);db.medicos=db.medicos.filter(x=>x.personaId!==id);
+    db.personas=db.personas.filter(x=>x.id!==id);save();toast("Persona eliminada")})}
+  else if(a==="nuevo-pac")modalPaciente();
+  else if(a==="edit-pac")modalPaciente(paciente(id));
+  else if(a==="del-pac"){const p=paciente(id);confirmar("Quitar como paciente","Se eliminará la historia "+p.codigo+" de "+nombrePac(p)+" y sus citas. La persona seguirá registrada.","Eliminar",()=>{
+    db.citas=db.citas.filter(c=>c.pacienteId!==id);db.pacientes=db.pacientes.filter(x=>x.id!==id);save();toast("Paciente eliminado")})}
+  else if(a==="nuevo-med")modalMedico();
+  else if(a==="edit-med")modalMedico(medico(id));
+  else if(a==="del-med"){const m=medico(id);confirmar("Quitar como médico","Se eliminará el CMP "+m.cmp+" de "+nombreMed(m)+" y sus citas. La persona seguirá registrada.","Eliminar",()=>{
+    db.citas=db.citas.filter(c=>c.medicoId!==id);db.medicos=db.medicos.filter(x=>x.id!==id);save();toast("Médico eliminado")})}
+  else if(a==="nueva-cita")modalCita();
+  else if(a==="del-cita")confirmar("Eliminar cita","Se eliminará esta cita de la agenda.","Eliminar",()=>{db.citas=db.citas.filter(c=>c.id!==id);save();toast("Cita eliminada")});
+  else if(a==="reset-demo")confirmar("Restablecer ejemplos","Se reemplazarán todos los datos actuales por los datos de ejemplo.","Restablecer",()=>{db=seed();save();toast("Datos de ejemplo restablecidos")});
+  else if(a==="vaciar")confirmar("Vaciar todo","Se borrarán todas las personas, pacientes, médicos y citas.","Vaciar",()=>{db=vacio();save();toast("Sistema vacío")});
+});
+document.addEventListener("submit",ev=>{
+  if(ev.target.id!=="login")return;
+  ev.preventDefault();
+  const u=($("#f-usuario").value||"").trim(),c=$("#f-clave").value||"";
+  const x=USERS[u];
+  if(!x||x.clave!==c){const e=$("#lerr");e.textContent="Usuario o contraseña incorrectos.";e.hidden=false;return}
+  session={usuario:u,rol:x.rol};
+  const h=(location.hash||"").slice(1);ui.view=VISTAS.includes(h)?h:"inicio";
+  render();
+});
+document.addEventListener("input",ev=>{
+  if(ev.target.id!=="q")return;
+  ui.q=ev.target.value;const r=filas();
+  $("#rows").innerHTML=r.html;$("#count").textContent=r.n+(r.n!==r.total?" de "+r.total:"")+" registros";
+});
+document.addEventListener("change",ev=>{
+  if(ev.target.id==="f-import"){importarArchivo(ev.target);return}
+  const s=ev.target.closest("select[data-estado]");if(!s||!esAdmin())return;
+  const c=db.citas.find(x=>x.id===+s.dataset.estado);if(!c)return;
+  const prev=c.estado;c.estado=s.value;
+  const e=c.estado!=="Cancelada"?conflictoCita(c,c.id):"";
+  if(e){c.estado=prev;toast(e);render();return}
+  save();toast("Estado actualizado");render();
+});
+document.addEventListener("keydown",ev=>{if(ev.key==="Escape")closeModal()});
+window.addEventListener("hashchange",()=>{
+  const h=(location.hash||"").slice(1);
+  if(session&&VISTAS.includes(h)&&h!==ui.view){ui.view=h;ui.q="";ui.estado="todas";render()}
+});
+
+/* ---------- Inicio ---------- */
+try{const t=localStorage.getItem("gc-tema");if(t==="dark"||t==="light")document.documentElement.dataset.theme=t}catch(e){}
+db=load();if(!db){db=seed();save()}
+render();
+})();
+</script>
