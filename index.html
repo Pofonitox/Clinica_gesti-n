@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <style>:root{color-scheme:light}[hidden]{display:none!important}img{max-width:100%}</style>
 <title>Gestión Clínica Integral</title>
-<meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
@@ -239,7 +238,7 @@ function sugerirHC(){
   return "HC-"+String(max+1).padStart(4,"0");
 }
 
-/* ---------- Validaciones (mismas reglas que el prototipo de escritorio) ---------- */
+/* ---------- Validaciones ---------- */
 function valPersona(d,selfId){
   const dni=(d.dni||"").trim(),nom=(d.nombres||"").trim(),ape=(d.apellidos||"").trim(),tel=(d.tel||"").trim();
   if(!dni)return "El campo DNI es obligatorio.";
